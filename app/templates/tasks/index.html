@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Görevler | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>Görevler</h1>
+
+    <form
+        method="GET"
+        action="{{ url_for('tasks.index') }}"
+    >
+        <div>
+            <label for="q">Görev ara</label>
+
+            <input
+                type="text"
+                id="q"
+                name="q"
+                value="{{ search }}"
+                placeholder="Görev başlığı..."
+            >
+        </div>
+
+        <div>
+            <label for="status">Durum</label>
+
+            <select id="status" name="status">
+                <option value="">Tüm durumlar</option>
+
+                <option
+                    value="Todo"
+                    {% if selected_status == 'Todo' %}selected{% endif %}
+                >
+                    Todo
+                </option>
+
+                <option
+                    value="In Progress"
+                    {% if selected_status == 'In Progress' %}selected{% endif %}
+                >
+                    In Progress
+                </option>
+
+                <option
+                    value="Done"
+                    {% if selected_status == 'Done' %}selected{% endif %}
+                >
+                    Done
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label for="priority">Öncelik</label>
+
+            <select id="priority" name="priority">
+                <option value="">Tüm öncelikler</option>
+
+                <option
+                    value="Low"
+                    {% if selected_priority == 'Low' %}selected{% endif %}
+                >
+                    Low
+                </option>
+
+                <option
+                    value="Medium"
+                    {% if selected_priority == 'Medium' %}selected{% endif %}
+                >
+                    Medium
+                </option>
+
+                <option
+                    value="High"
+                    {% if selected_priority == 'High' %}selected{% endif %}
+                >
+                    High
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label for="assignee">Atanan kullanıcı</label>
+
+            <select id="assignee" name="assignee">
+                <option value="">Tüm kullanıcılar</option>
+
+                {% for user in available_assignees %}
+                    <option
+                        value="{{ user.id }}"
+                        {% if selected_assignee_id == user.id %}selected{% endif %}
+                    >
+                        {{ user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="due_from">Teslim tarihi başlangıcı</label>
+
+            <input
+                type="date"
+                id="due_from"
+                name="due_from"
+                value="{{ due_from_value }}"
+            >
+        </div>
+
+        <div>
+            <label for="due_to">Teslim tarihi bitişi</label>
+
+            <input
+                type="date"
+                id="due_to"
+                name="due_to"
+                value="{{ due_to_value }}"
+            >
+        </div>
+
+        {% if date_filter_error %}
+            <p>{{ date_filter_error }}</p>
+        {% endif %}
+
+        <button type="submit">
+            Ara / Filtrele
+        </button>
+
+        <a href="{{ url_for('tasks.index') }}">
+            Filtreleri Temizle
+        </a>
+    </form>
+
+    {% if tasks %}
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <h2>
+                        <a href="{{ url_for('tasks.detail', task_id=task.id) }}">
+                            {{ task.title }}
+                        </a>
+                    </h2>
+
+                    <p>
+                        Ekip: {{ task.team.name }}
+                    </p>
+
+                    <p>
+                        Durum: {{ task.status }}
+                    </p>
+
+                    <p>
+                        Öncelik: {{ task.priority }}
+                    </p>
+
+                    <p>
+                        {% if task.assignee %}
+                            Atanan: {{ task.assignee.username }}
+                        {% else %}
+                            Atanan: Henüz atanmadı
+                        {% endif %}
+                    </p>
+
+                    {% if task.due_date %}
+                        <p>
+                            Son teslim:
+                            {{ task.due_date.strftime('%d.%m.%Y') }}
+                        </p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Henüz görüntüleyebileceğiniz bir görev bulunmuyor.</p>
+    {% endif %}
+{% endblock %}

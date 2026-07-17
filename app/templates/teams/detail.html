@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+{{ team.name }} | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>{{ team.name }}</h1>
+
+    {% if team.description %}
+        <p>{{ team.description }}</p>
+    {% else %}
+        <p>Bu ekip için açıklama eklenmemiş.</p>
+    {% endif %}
+
+    <p>
+        Bu ekipteki rolünüz:
+        <strong>{{ current_membership.role }}</strong>
+    </p>
+    <p>
+        <a href="{{ url_for('tasks.create', team_id=team.id) }}">
+            Yeni Görev Oluştur
+        </a>
+    </p>
+    {% if current_membership.role == 'Admin' %}
+        <p>
+            <a href="{{ url_for(
+                'teams.add_member',
+                team_id=team.id
+            ) }}">
+                Üye Ekle
+            </a>
+        </p>
+    {% endif %}
+
+    <h2>Ekip Üyeleri</h2>
+
+    {% if team.members %}
+        <ul>
+            {% for member in team.members %}
+                <li>
+                    <strong>{{ member.user.username }}</strong>
+
+                    <span>
+                        {{ member.user.email }}
+                    </span>
+
+                    <span>
+                        Rol: {{ member.role }}
+                    </span>
+                    {% if current_membership.role == 'Admin' %}
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'teams.update_member_role',
+                                team_id=team.id,
+                                membership_id=member.id
+                            ) }}"
+                        >
+                            <label for="role-{{ member.id }}">
+                                Rolü değiştir
+                            </label>
+
+                            <select
+                                id="role-{{ member.id }}"
+                                name="role"
+                            >
+                                <option
+                                    value="Member"
+                                    {% if member.role == 'Member' %}selected{% endif %}
+                                >
+                                    Member
+                                </option>
+
+                                <option
+                                    value="Admin"
+                                    {% if member.role == 'Admin' %}selected{% endif %}
+                                >
+                                    Admin
+                                </option>
+                            </select>
+
+                            <button type="submit">
+                                Rolü Güncelle
+                            </button>
+                        </form>
+
+                        {% if member.user_id != current_user.id %}
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'teams.remove_member',
+                                    team_id=team.id,
+                                    membership_id=member.id
+                                ) }}"
+                            >
+                                <button type="submit">
+                                    Ekipten Çıkar
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Bu ekipte henüz üye bulunmuyor.</p>
+    {% endif %}
+    <p>
+        <a href="{{ url_for('teams.index') }}">
+            Ekiplerime dön
+        </a>
+    </p>
+{% endblock %}

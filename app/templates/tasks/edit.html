@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Görevi Düzenle | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>Görevi Düzenle</h1>
+
+    <p>
+        Ekip: <strong>{{ task.team.name }}</strong>
+    </p>
+
+    {% if errors %}
+        <div>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form
+        method="POST"
+        action="{{ url_for('tasks.edit', task_id=task.id) }}"
+    >
+        <div>
+            <label for="title">Görev başlığı</label>
+
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="{{ title }}"
+                minlength="3"
+                maxlength="150"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="description">Açıklama</label>
+
+            <textarea
+                id="description"
+                name="description"
+                rows="5"
+            >{{ description }}</textarea>
+        </div>
+
+        <div>
+            <label for="due_date">Son teslim tarihi</label>
+
+            <input
+                type="date"
+                id="due_date"
+                name="due_date"
+                value="{{ due_date_value }}"
+            >
+        </div>
+
+        <button type="submit">
+            Değişiklikleri Kaydet
+        </button>
+    </form>
+
+    <p>
+        <a href="{{ url_for('tasks.detail', task_id=task.id) }}">
+            Göreve dön
+        </a>
+    </p>
+{% endblock %}

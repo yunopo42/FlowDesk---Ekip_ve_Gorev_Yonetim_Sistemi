@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Yeni Ekip | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>Yeni Ekip Oluştur</h1>
+
+    {% if errors %}
+        <div>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('teams.create') }}">
+        <div>
+            <label for="name">Ekip adı</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="{{ name }}"
+                minlength="3"
+                maxlength="100"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="description">Açıklama</label>
+            <textarea
+                id="description"
+                name="description"
+                maxlength="255"
+                rows="4"
+            >{{ description }}</textarea>
+        </div>
+
+        <button type="submit">Ekibi Oluştur</button>
+    </form>
+
+    <p>
+        <a href="{{ url_for('teams.index') }}">
+            Ekiplerime dön
+        </a>
+    </p>
+{% endblock %}

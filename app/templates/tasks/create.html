@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Yeni Görev | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>Yeni Görev Oluştur</h1>
+
+    <p>
+        Ekip: <strong>{{ team.name }}</strong>
+    </p>
+
+    {% if errors %}
+        <div>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form
+        method="POST"
+        action="{{ url_for('tasks.create', team_id=team.id) }}"
+    >
+        <div>
+            <label for="title">Görev başlığı</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="{{ title }}"
+                minlength="3"
+                maxlength="150"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="description">Açıklama</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="5"
+            >{{ description }}</textarea>
+        </div>
+
+        <div>
+            <label for="priority">Öncelik</label>
+            <select id="priority" name="priority">
+                <option
+                    value="Low"
+                    {% if priority == 'Low' %}selected{% endif %}
+                >
+                    Low
+                </option>
+
+                <option
+                    value="Medium"
+                    {% if priority == 'Medium' %}selected{% endif %}
+                >
+                    Medium
+                </option>
+
+                <option
+                    value="High"
+                    {% if priority == 'High' %}selected{% endif %}
+                >
+                    High
+                </option>
+            </select>
+        </div>
+
+        {% if current_membership.role == 'Admin' %}
+            <div>
+                <label for="assigned_to_id">
+                    Atanacak kullanıcı
+                </label>
+
+                <select
+                    id="assigned_to_id"
+                    name="assigned_to_id"
+                >
+                    <option value="">
+                        Atama yapılmasın
+                    </option>
+
+                    {% for member in members %}
+                        <option
+                            value="{{ member.user_id }}"
+                            {% if assigned_to_value == member.user_id|string %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ member.user.username }}
+                            — {{ member.role }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% else %}
+            <p>
+                Bu görevi atanmamış olarak oluşturuyorsunuz.
+                Görev atama işlemini ekip Admin’i yapabilir.
+            </p>
+        {% endif %}
+        <div>
+            <label for="due_date">Son teslim tarihi</label>
+            <input
+                type="date"
+                id="due_date"
+                name="due_date"
+                value="{{ due_date_value }}"
+            >
+        </div>
+
+        <button type="submit">
+            Görevi Oluştur
+        </button>
+    </form>
+
+    <p>
+        <a href="{{ url_for('teams.detail', team_id=team.id) }}">
+            Ekip detayına dön
+        </a>
+    </p>
+{% endblock %}

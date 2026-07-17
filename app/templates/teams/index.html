@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+Ekiplerim | FlowDesk
+{% endblock %}
+
+
+{% block content %}
+    <h1>Ekiplerim</h1>
+    <p>
+    <a href="{{ url_for('teams.create') }}">
+        Yeni Ekip Oluştur
+    </a>
+</p>
+
+    {% if memberships %}
+        <ul>
+            {% for membership in memberships %}
+                <li>
+                    <a href="{{ url_for(
+                        'teams.detail',
+                        team_id=membership.team.id
+                    ) }}">
+                        <strong>{{ membership.team.name }}</strong>
+                    </a>
+                    <span>
+                        Rol: {{ membership.role }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Henüz üyesi olduğunuz bir ekip bulunmuyor.</p>
+    {% endif %}
+{% endblock %}

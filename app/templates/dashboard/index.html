@@ -1,0 +1,203 @@
+{% extends 'base.html' %} {% block title%} Dashboard | FlowDesk {% endblock %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<h1>Dashboard</h1>
+
+<p>Hoş Geldiniz , <strong>{{current_user.username}}</strong></p>
+
+<section>
+  <h2>Görev Özeti</h2>
+  <div>
+    <h3>Toplam Görev</h3>
+    <p>{{statistics.total}}</p>
+  </div>
+  <div>
+    <h3>Yapılacaklar</h3>
+    <p>{{statistics.todo}}</p>
+  </div>
+  <div>
+    <h3>Devam Ediyor</h3>
+    <p>{{statistics.in_progress}}</p>
+  </div>
+  <div>
+    <h3>Tamamlandı</h3>
+    <p>{{statistics.done}}</p>
+  </div>
+  <div>
+    <h3>Geciken</h3>
+    <p>{{statistics.overdue}}</p>
+  </div>
+</section>
+<section>
+  <h2>Görev Durum Dağılımı</h2>
+  {% if statistics.total > 0 %}
+  <div style="max-width: 450px">
+    <canvas id="taskStatusChart"></canvas>
+  </div>
+  <h2>Görev Öncelik Dağılımı</h2>
+  <div style="max-width: 600px">
+    <canvas id="taskPriorityChart"></canvas>
+  </div>
+  {%else%}
+  <p>Grafik oluşturmak için henüz görev bulunmuyor.</p>
+  {% endif %}
+</section>
+<section>
+  <h2>Yaklaşan Teslim Tarihleri</h2>
+  {% if upcoming_tasks %}
+    <ul>
+      {% for task in upcoming_tasks %}
+        <li>
+          <a href="{{url_for('tasks.detail' , task_id = task.id )}}">
+            {{task.title}}
+          </a>
+          <span>
+            -{{task.team.name}}
+            -Teslim:
+            {{task.due_date.strftime('%d.%m.%Y')}}
+          </span>
+        </li>
+      {% endfor %}      
+    </ul>
+  {% else %}
+    <p>Yaklaşan teslim tarihine sahip görev bulunmuyor</p>
+  {% endif %}
+</section>
+<section>
+  <h2>Son Görevler</h2>
+  {% if recent_tasks %}
+  <ul>
+    {% for task in recent_tasks %}
+    <li>
+      <a href="{{url_for('tasks.detail' , task_id=task.id)}}">
+        {{ task.title }}
+      </a>
+      <span> -{{task.team.name}} -{{task.status}} -{{task.priority}} </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Henüz görüntülenecek bir görev bulunmuyor.</p>
+  {% endif %}
+</section>
+<section>
+  <h2>Son Aktiviteler</h2>
+  {% if recent_activities %}
+      <ul>
+          {% for activity in recent_activities %}
+               <li>
+                  <p>
+                      <strong>{{ activity.user.username }}</strong>
+
+                      — {{ activity.action }}
+
+                      <a href="{{ url_for('tasks.detail', task_id=activity.task.id) }}">
+                        {{ activity.task.title }}
+                      </a>
+                  </p>
+
+                  <small>
+                    {{ activity.created_at.strftime('%d.%m.%Y %H:%M') }}
+                  </small>
+              </li>
+          {% endfor %}
+      </ul>
+  {% else %}
+    <p>Henüz görüntülenecek bir aktivite bulunmuyor.</p>
+  {% endif %}
+</section>
+{% if statistics.total > 0 %}
+    <script>
+        const taskStatusCanvas = document.getElementById(
+            'taskStatusChart'
+        );
+
+        const taskStatusData = {
+            labels: [
+                'Yapılacak',
+                'Devam Eden',
+                'Tamamlanan'
+            ],
+            datasets: [
+                {
+                    label: 'Görev Sayısı',
+                    data: [
+                        {{ statistics.todo }},
+                        {{ statistics.in_progress }},
+                        {{ statistics.done }}
+                    ],
+                    backgroundColor: [
+                        '#f59e0b',
+                        '#3b82f6',
+                        '#22c55e'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        new Chart(taskStatusCanvas, {
+            type: 'doughnut',
+            data: taskStatusData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        const taskPriorityCanvas = document.getElementById(
+            'taskPriorityChart'
+        );
+
+        const taskPriorityData = {
+            labels: [
+                'Düşük',
+                'Orta',
+                'Yüksek'
+            ],
+            datasets: [
+                {
+                    label: 'Görev Sayısı',
+                    data: [
+                        {{ priority_statistics.low }},
+                        {{ priority_statistics.medium }},
+                        {{ priority_statistics.high }}
+                    ],
+                    backgroundColor: [
+                        '#22c55e',
+                        '#f59e0b',
+                        '#ef4444'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        new Chart(taskPriorityCanvas, {
+            type: 'bar',
+            data: taskPriorityData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,28 @@
+# Sanal ortam
+.venv/
+venv/
+
+# Python geçici dosyaları
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Gizli ortam değişkenleri
+.env
+
+# Yerel veritabanı
+flowdesk.db
+*.sqlite
+*.sqlite3
+
+# Test ve araç dosyaları
+.pytest_cache/
+.coverage
+
+# Editör ayarları
+.vscode/
+.idea/
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FlowDesk{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <nav>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.index') }}">FlowDesk</a>
+
+                <a href="{{ url_for('teams.index') }}">
+                    Ekiplerim
+                </a>
+                <a href="{{url_for('tasks.index')}}">
+                    Görevler
+                </a>
+                <span>
+                    Merhaba, {{ current_user.username }}
+                </span>
+
+                <a href="{{ url_for('auth.logout') }}">
+                    Çıkış Yap
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">
+                    Giriş Yap
+                </a>
+
+                <a href="{{ url_for('auth.register') }}">
+                    Kayıt Ol
+                </a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                        <p data-category="{{category}}">
+                            {{message}}
+                        </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+</body>
+</html>
