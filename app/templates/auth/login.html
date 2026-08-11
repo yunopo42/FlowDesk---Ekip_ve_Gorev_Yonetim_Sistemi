@@ -1,60 +1,74 @@
 {% extends 'base.html' %}
 
-{% block title %}
-Giriş Yap | FlowDesk
-{% endblock %}
+{% block title %}Giriş Yap | FlowDesk{% endblock %}
 
 {% block content %}
-    <h1>Giriş Yap</h1>
+<div class="mx-auto grid min-h-[65vh] max-w-5xl items-center gap-10 lg:grid-cols-2">
+    <section class="hidden lg:block">
+        <span class="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">FlowDesk</span>
+        <h1 class="mt-5 text-4xl font-bold tracking-tight text-slate-950">Ekibinizin işlerini tek merkezden yönetin.</h1>
+        <p class="mt-4 max-w-lg text-lg leading-8 text-slate-600">Görevleri planlayın, sorumluları belirleyin ve ilerlemeyi kolayca takip edin.</p>
+    </section>
 
-    {% if errors %}
-        <div>
-            <ul>
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('auth.login') }}">
-        <div>
-            <label for="email">E-posta adresi</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                value="{{ email }}"
-                autocomplete="email"
-                required
-            >
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
+        <div class="mb-7">
+            <p class="text-sm font-semibold text-indigo-600">Tekrar hoş geldiniz</p>
+            <h1 class="mt-1 text-2xl font-bold text-slate-950">Hesabınıza giriş yapın</h1>
+            <p class="mt-2 text-sm text-slate-500">FlowDesk çalışma alanınıza devam edin.</p>
         </div>
 
-        <div>
-            <label for="password">Parola</label>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                autocomplete="current-password"
-                required
-            >
+        {% if errors %}
+            <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <ul class="list-disc space-y-1 pl-5">
+                    {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label for="email" class="mb-2 block text-sm font-semibold text-slate-700">E-posta adresi</label>
+                <input type="email" id="email" name="email" value="{{ email }}" autocomplete="email" required
+                       class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+
+            <div>
+                <div class="mb-2 flex items-center justify-between gap-3">
+                    <label for="password" class="block text-sm font-semibold text-slate-700">Parola</label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+                        Parolanızı mı unuttunuz?
+                    </a>
+                </div>
+                <input type="password" id="password" name="password" autocomplete="current-password" required
+                       class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+
+            <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-600">
+                <input type="checkbox" id="remember" name="remember" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                Beni hatırla
+            </label>
+
+            <button type="submit" class="w-full rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                Giriş Yap
+            </button>
+        </form>
+
+        <div class="mt-6 border-t border-slate-100 pt-6">
+            <p class="text-center text-sm font-semibold text-slate-700">Henüz hesabınız yok mu?</p>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+                <a href="{{ url_for('auth.register_personnel') }}" class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-center text-sm font-bold text-indigo-700 transition hover:bg-indigo-100">
+                    Personel Kaydı
+                </a>
+                <a href="{{ url_for('auth.register_intern') }}" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
+                    Stajyer Kaydı
+                </a>
+            </div>
         </div>
-
-        <div>
-            <input
-                type="checkbox"
-                id="remember"
-                name="remember"
-            >
-            <label for="remember">Beni hatırla</label>
-        </div>
-
-        <button type="submit">Giriş Yap</button>
-    </form>
-
-    <p>
-        Henüz bir hesabınız yok mu?
-        <a href="{{ url_for('auth.register') }}">Kayıt olun</a>
-    </p>
+        <p class="mt-2 text-center text-sm text-slate-500">
+            Doğrulama e-postası gelmedi mi?
+            <a href="{{ url_for('auth.resend_verification') }}" class="font-semibold text-indigo-600 hover:text-indigo-700">Yeniden gönderin</a>
+        </p>
+    </section>
+</div>
 {% endblock %}

@@ -1,0 +1,29 @@
+name: Özellik önerisi
+description: FlowDesk için yeni bir özellik veya iyileştirme önerin
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Çözülecek ihtiyaç
+      description: Bu özellik hangi kullanıcı problemini çözecek?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Önerilen çözüm
+      description: Beklediğiniz kullanıcı akışını açıklayın.
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: En çok etkilenen rol
+      options:
+        - Yazılım personeli
+        - Ekip yöneticisi
+        - Mentör
+        - Stajyer
+        - Tümü

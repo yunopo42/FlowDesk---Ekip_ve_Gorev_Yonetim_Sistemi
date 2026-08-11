@@ -3,54 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FlowDesk ekip ve görev yönetim sistemi">
     <title>{% block title %}FlowDesk{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="{{ url_for('static', filename='js/flowdesk.js') }}" defer></script>
+    {% block head_scripts %}{% endblock %}
 </head>
-<body>
-    <header>
-        <nav>
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+        <nav class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8" aria-label="Ana navigasyon">
+            <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-3 text-xl font-bold tracking-tight text-slate-950">
+                <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">F</span>
+                <span>FlowDesk</span>
+            </a>
+
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('dashboard.index') }}">FlowDesk</a>
+                <div class="order-3 flex w-full items-center gap-2 overflow-x-auto sm:order-2 sm:w-auto">
+                    <a href="{{ url_for('dashboard.index') }}"
+                       class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition {% if request.endpoint == 'dashboard.index' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-950{% endif %}">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('teams.index') }}"
+                       class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition {% if request.blueprint == 'teams' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-950{% endif %}">
+                        Ekiplerim
+                    </a>
+                    <a href="{{ url_for('tasks.index') }}"
+                       class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition {% if request.blueprint == 'tasks' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-950{% endif %}">
+                        Görevler
+                    </a>
+                    <a href="{{ url_for('internships.index') }}"
+                       class="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition {% if request.blueprint == 'internships' %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-950{% endif %}">
+                        Staj Takibi
+                    </a>
+                </div>
 
-                <a href="{{ url_for('teams.index') }}">
-                    Ekiplerim
-                </a>
-                <a href="{{url_for('tasks.index')}}">
-                    Görevler
-                </a>
-                <span>
-                    Merhaba, {{ current_user.username }}
-                </span>
-
-                <a href="{{ url_for('auth.logout') }}">
-                    Çıkış Yap
-                </a>
+                <div class="order-2 flex items-center gap-3 sm:order-3">
+                    <a href="{{ url_for('auth.profile') }}"
+                       class="hidden items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-slate-100 md:flex">
+                        {% if current_user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_image) }}"
+                                 alt=""
+                                 class="h-9 w-9 rounded-lg object-cover">
+                        {% else %}
+                            <span class="grid h-9 w-9 place-items-center rounded-lg bg-indigo-100 text-sm font-bold text-indigo-700">
+                                {{ current_user.username[0] | upper }}
+                            </span>
+                        {% endif %}
+                        <span class="text-right">
+                            <span class="block text-xs text-slate-500">{% if current_user.is_personnel %}Yazılım Personeli{% else %}Stajyer{% endif %}</span>
+                            <span class="block max-w-32 truncate text-sm font-semibold text-slate-800">{{ current_user.username }}</span>
+                        </span>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700">
+                        Çıkış
+                    </a>
+                </div>
             {% else %}
-                <a href="{{ url_for('auth.login') }}">
-                    Giriş Yap
-                </a>
-
-                <a href="{{ url_for('auth.register') }}">
-                    Kayıt Ol
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ url_for('auth.login') }}" class="rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+                        Giriş Yap
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                        Kayıt Ol
+                    </a>
+                </div>
             {% endif %}
         </nav>
     </header>
-    <main>
+
+    <main class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        {% if current_user.is_authenticated and not current_user.email_verified %}
+            <div class="mb-6 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+                <p><strong>E-posta adresiniz doğrulanmadı.</strong> Hesabınızın güvenliği için {{ current_user.email }} adresini doğrulayın.</p>
+                <a href="{{ url_for('auth.resend_verification') }}" class="shrink-0 font-bold text-amber-800 underline decoration-amber-400 underline-offset-4">Bağlantıyı yeniden gönder</a>
+            </div>
+        {% endif %}
         {% with messages = get_flashed_messages(with_categories=True) %}
             {% if messages %}
-                <div>
+                <div class="mb-6 space-y-3" aria-live="polite">
                     {% for category, message in messages %}
-                        <p data-category="{{category}}">
-                            {{message}}
-                        </p>
+                        <div class="rounded-xl border px-4 py-3 text-sm font-medium shadow-sm
+                            {% if category == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800
+                            {% elif category == 'warning' %}border-amber-200 bg-amber-50 text-amber-800
+                            {% elif category == 'danger' or category == 'error' %}border-red-200 bg-red-50 text-red-800
+                            {% else %}border-blue-200 bg-blue-50 text-blue-800{% endif %}"
+                            data-category="{{ category }}">
+                            {{ message }}
+                        </div>
                     {% endfor %}
                 </div>
-                {% endif %}
+            {% endif %}
         {% endwith %}
 
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
-    
+
+    <footer class="border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <p>&copy; 2026 FlowDesk</p>
+            <p>Ekiplerin işini akışta tutar.</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -1,0 +1,36 @@
+name: Hata bildirimi
+description: Tekrar üretilebilen bir FlowDesk hatasını bildirin
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Kişisel veri, parola, token veya `.env` içeriği paylaşmayın.
+  - type: textarea
+    id: description
+    attributes:
+      label: Hata açıklaması
+      description: Ne oldu ve ne olmasını bekliyordunuz?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Tekrar üretme adımları
+      placeholder: |
+        1. ... hesabıyla giriş yap
+        2. ... sayfasına git
+        3. ... butonuna bas
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python sürümü
+      placeholder: "3.13.3"
+  - type: textarea
+    id: logs
+    attributes:
+      label: İlgili log veya ekran görüntüsü
+      description: Gizli ve kişisel bilgileri kaldırın.
+      render: shell

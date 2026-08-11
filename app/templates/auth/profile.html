@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Hesap Ayarları | FlowDesk{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl">
+    <div class="mb-8">
+        <p class="text-sm font-semibold text-indigo-600">Hesap yönetimi</p>
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Hesap ayarları</h1>
+        <p class="mt-2 text-slate-500">
+            Profil bilgilerini, fotoğrafını ve parolanı güvenle yönet.
+        </p>
+    </div>
+
+    {% if errors %}
+        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800" role="alert">
+            <p class="font-bold">Lütfen aşağıdaki alanları kontrol et:</p>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]">
+        <div class="space-y-6">
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-8 sm:px-8">
+                    <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
+                        <div class="relative shrink-0">
+                            {% if current_user.profile_image %}
+                                <img id="profile-preview"
+                                     src="{{ url_for('static', filename='uploads/profiles/' ~ current_user.profile_image) }}"
+                                     alt="{{ current_user.username }} profil fotoğrafı"
+                                     class="h-24 w-24 rounded-2xl border-4 border-white/30 object-cover shadow-lg">
+                            {% else %}
+                                <div id="profile-placeholder"
+                                     class="grid h-24 w-24 place-items-center rounded-2xl border-4 border-white/30 bg-white/20 text-3xl font-bold text-white shadow-lg">
+                                    {{ current_user.username[0] | upper }}
+                                </div>
+                                <img id="profile-preview"
+                                     src=""
+                                     alt="Yeni profil fotoğrafı önizlemesi"
+                                     class="hidden h-24 w-24 rounded-2xl border-4 border-white/30 object-cover shadow-lg">
+                            {% endif %}
+                        </div>
+
+                        <div class="min-w-0">
+                            <h2 class="truncate text-2xl font-bold text-white">{{ current_user.username }}</h2>
+                            <p class="mt-1 break-all text-sm text-indigo-100">{{ current_user.email }}</p>
+                            <p class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold {% if current_user.email_verified %}bg-emerald-400/20 text-emerald-50{% else %}bg-amber-300/20 text-amber-50{% endif %}">
+                                {% if current_user.email_verified %}✓ E-posta doğrulandı{% else %}E-posta doğrulama bekliyor{% endif %}
+                            </p>
+                            <p class="mt-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+                                {{ current_user.created_at.strftime('%d.%m.%Y') }} tarihinden beri üye
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('auth.update_profile') }}"
+                      method="POST"
+                      enctype="multipart/form-data"
+                      class="space-y-6 p-6 sm:p-8">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div>
+                        <label for="profile_image" class="block text-sm font-semibold text-slate-700">
+                            Profil fotoğrafı
+                        </label>
+                        <div class="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                            <input id="profile_image"
+                                   name="profile_image"
+                                   type="file"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">
+                            <p id="file-help" class="mt-2 text-xs text-slate-500">
+                                JPG, PNG veya WebP. En fazla 5 MB. Fotoğraf kare biçimde hazırlanır.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label for="username" class="block text-sm font-semibold text-slate-700">Kullanıcı adı</label>
+                            <input id="username"
+                                   name="username"
+                                   type="text"
+                                   value="{{ form_username }}"
+                                   minlength="3"
+                                   maxlength="50"
+                                   required
+                                   autocomplete="username"
+                                   class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-sm font-semibold text-slate-700">Telefon numarası</label>
+                            <input id="phone"
+                                   name="phone"
+                                   type="tel"
+                                   value="{{ form_phone }}"
+                                   maxlength="20"
+                                   autocomplete="tel"
+                                   placeholder="+90 555 555 55 55"
+                                   class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-semibold text-slate-700">E-posta adresi</label>
+                        <input id="email"
+                               name="email"
+                               type="email"
+                               value="{{ form_email }}"
+                               maxlength="120"
+                               required
+                               autocomplete="email"
+                               class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    </div>
+
+                    <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                        {% if current_user.profile_image %}
+                            <button type="submit"
+                                    form="remove-photo-form"
+                                    class="rounded-xl px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50">
+                                Fotoğrafı kaldır
+                            </button>
+                        {% else %}
+                            <p class="text-xs text-slate-500">Bilgilerin yalnızca ekip arkadaşlarınla paylaşılır.</p>
+                        {% endif %}
+
+                        <button type="submit"
+                                class="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                            Değişiklikleri kaydet
+                        </button>
+                    </div>
+                </form>
+
+                {% if current_user.profile_image %}
+                    <form id="remove-photo-form"
+                          action="{{ url_for('auth.remove_profile_photo') }}"
+                          method="POST"
+                          class="hidden">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="space-y-6">
+            <div id="password" class="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-lg text-amber-700">🔒</div>
+                    <div>
+                        <h2 class="font-bold text-slate-950">Parola değiştir</h2>
+                        <p class="mt-1 text-sm text-slate-500">Hesabını korumak için güçlü ve benzersiz bir parola kullan.</p>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('auth.change_password') }}" method="POST" class="mt-6 space-y-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div>
+                        <label for="current_password" class="block text-sm font-semibold text-slate-700">Mevcut parola</label>
+                        <input id="current_password"
+                               name="current_password"
+                               type="password"
+                               required
+                               autocomplete="current-password"
+                               class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    </div>
+
+                    <div>
+                        <label for="new_password" class="block text-sm font-semibold text-slate-700">Yeni parola</label>
+                        <input id="new_password"
+                               name="new_password"
+                               type="password"
+                               minlength="8"
+                               required
+                               autocomplete="new-password"
+                               class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        <p class="mt-1 text-xs text-slate-500">En az 8 karakter kullan.</p>
+                    </div>
+
+                    <div>
+                        <label for="new_password_confirm" class="block text-sm font-semibold text-slate-700">Yeni parola tekrarı</label>
+                        <input id="new_password_confirm"
+                               name="new_password_confirm"
+                               type="password"
+                               minlength="8"
+                               required
+                               autocomplete="new-password"
+                               class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    </div>
+
+                    <button type="submit"
+                            class="w-full rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+                        Parolayı güncelle
+                    </button>
+                </form>
+            </div>
+
+            <div class="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+                <h3 class="font-bold text-blue-950">Güvenlik önerisi</h3>
+                <p class="mt-2 text-sm leading-6 text-blue-800">
+                    Başka platformlarda kullandığın parolayı burada tekrar kullanma ve parolanı kimseyle paylaşma.
+                </p>
+            </div>
+        </aside>
+    </div>
+</section>
+
+{# Profil fotoğrafı ön izlemesi static/js/flowdesk.js içinde bağlanır. #}
+{% endblock %}

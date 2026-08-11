@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Staj Programı Oluştur | FlowDesk{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl">
+    <div class="mb-8">
+        <a href="{{ url_for('internships.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">← Staj takibine dön</a>
+        <h1 class="mt-4 text-3xl font-bold tracking-tight text-slate-950">Yeni staj programı</h1>
+        <p class="mt-2 text-slate-500">Ekibinizi ve kayıtlı bir stajyer hesabını seçin. Stajyer, program oluşturulduğunda ekibe otomatik olarak katılır.</p>
+    </div>
+
+    {% if errors %}
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <ul class="list-disc space-y-1 pl-5">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('internships.create') }}" class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="team_id" class="block text-sm font-semibold text-slate-700">Staj ekibi</label>
+                <select id="team_id" name="team_id" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <option value="">Ekip seçin</option>
+                    {% for membership in mentor_memberships %}
+                        <option value="{{ membership.team_id }}" {% if values.team_id == membership.team_id|string %}selected{% endif %}>{{ membership.team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="intern_id" class="block text-sm font-semibold text-slate-700">Stajyer</label>
+                <select id="intern_id" name="intern_id" required class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <option value="">Stajyer seçin</option>
+                    {% for intern in intern_users %}
+                        <option value="{{ intern.id }}" {% if values.intern_id == intern.id|string %}selected{% endif %}>{{ intern.username }} — {{ intern.email }}</option>
+                    {% endfor %}
+                </select>
+                {% if not intern_users %}
+                    <p class="mt-2 text-sm text-amber-700">Henüz kayıtlı bir stajyer hesabı bulunmuyor.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="company_unit" class="block text-sm font-semibold text-slate-700">Çalıştığı birim</label>
+                <input id="company_unit" name="company_unit" value="{{ values.company_unit }}" maxlength="150" required placeholder="Örn. Yazılım Geliştirme Birimi" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+            <div>
+                <label for="internship_role" class="block text-sm font-semibold text-slate-700">Staj rolü / pozisyonu</label>
+                <input id="internship_role" name="internship_role" value="{{ values.internship_role }}" maxlength="150" required placeholder="Örn. Backend Developer Stajyeri" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="start_date" class="block text-sm font-semibold text-slate-700">Başlangıç tarihi</label>
+                <input id="start_date" name="start_date" type="date" value="{{ values.start_date }}" required class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+            <div>
+                <label for="end_date" class="block text-sm font-semibold text-slate-700">Bitiş tarihi</label>
+                <input id="end_date" name="end_date" type="date" value="{{ values.end_date }}" required class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+        </div>
+
+        <div class="flex justify-end border-t border-slate-100 pt-6">
+            <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700">Programı oluştur</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

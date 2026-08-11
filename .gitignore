@@ -17,12 +17,32 @@ flowdesk.db
 
 # Test ve araç dosyaları
 .pytest_cache/
+.pytest_tmp/
 .coverage
+server.stdout.log
+server.stderr.log
 
 # Editör ayarları
 .vscode/
 .idea/
+.claude/
+.codex/
+.agents/
+
+# Yerel geliştirme notları
+ornektesthesap.md
+
+# Derleme, tip kontrolü ve test raporları
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+dist/
+build/
+*.egg-info/
 
 # İşletim sistemi dosyaları
 .DS_Store
 Thumbs.db
+# Kullanıcıların yüklediği profil fotoğrafları repoya eklenmez.
+app/static/uploads/profiles/*
+!app/static/uploads/profiles/.gitkeep

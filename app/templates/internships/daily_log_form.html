@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Günlük Staj Kaydı | FlowDesk{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl">
+    <div class="mb-8">
+        <a href="{{ url_for('internships.detail', internship_id=internship.id) }}" class="text-sm font-semibold text-indigo-600">← Staj programına dön</a>
+        <h1 class="mt-4 text-3xl font-bold text-slate-950">{% if is_new %}Günlük çalışma kaydı{% else %}Günlük kaydı düzenle{% endif %}</h1>
+        <p class="mt-2 text-slate-500">Yaptığınız çalışmayı, öğrendiklerinizi ve karşılaştığınız sorunları mentörünüzle paylaşın.</p>
+    </div>
+
+    {% if errors %}
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <ul class="list-disc space-y-1 pl-5">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="grid gap-5 sm:grid-cols-[1fr_180px]">
+            <div>
+                <label for="work_date" class="block text-sm font-semibold text-slate-700">Çalışma tarihi</label>
+                <input id="work_date" name="work_date" type="date" value="{{ daily_log.work_date.strftime('%Y-%m-%d') }}" min="{{ internship.start_date.strftime('%Y-%m-%d') }}" max="{{ internship.end_date.strftime('%Y-%m-%d') }}" required class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+            <div>
+                <label for="hours" class="block text-sm font-semibold text-slate-700">Çalışma saati</label>
+                <input id="hours" name="hours" type="number" min="0.25" max="24" step="0.25" value="{{ daily_log.hours }}" required class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+        </div>
+        <div>
+            <label for="title" class="block text-sm font-semibold text-slate-700">Günün başlığı</label>
+            <input id="title" name="title" value="{{ daily_log.title }}" maxlength="150" required placeholder="Örn. Flask kullanıcı yetkilendirmesi" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+        </div>
+        <div>
+            <label for="work_summary" class="block text-sm font-semibold text-slate-700">Bugün ne yaptım?</label>
+            <textarea id="work_summary" name="work_summary" rows="6" required class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">{{ daily_log.work_summary }}</textarea>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+                <label for="learned" class="block text-sm font-semibold text-slate-700">Ne öğrendim?</label>
+                <textarea id="learned" name="learned" rows="4" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">{{ daily_log.learned or '' }}</textarea>
+            </div>
+            <div>
+                <label for="blockers" class="block text-sm font-semibold text-slate-700">Karşılaştığım sorunlar</label>
+                <textarea id="blockers" name="blockers" rows="4" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">{{ daily_log.blockers or '' }}</textarea>
+            </div>
+        </div>
+        <div class="flex justify-end border-t border-slate-100 pt-6">
+            <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700">Mentöre gönder</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

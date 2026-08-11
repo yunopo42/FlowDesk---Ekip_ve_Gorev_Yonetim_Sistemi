@@ -12,7 +12,15 @@ from extensions import db
 def index():
     team_ids = db.select(TeamMember.team_id).where(TeamMember.user_id == current_user.id)
 
-    tasks = db.session.scalars(db.select(Task).where(Task.team_id.in_(team_ids)).order_by(Task.created_at.desc())).all()
+    task_query = db.select(Task).where(Task.team_id.in_(team_ids))
+    if current_user.is_intern:
+        task_query = task_query.where(
+            Task.assigned_to_id == current_user.id
+        )
+
+    tasks = db.session.scalars(
+        task_query.order_by(Task.created_at.desc())
+    ).all()
 
     today = date.today()
 
@@ -35,6 +43,16 @@ def index():
             1 for task in tasks
             if task.status == 'In Progress'
         ),
+        # İnceleme ve düzeltme durumları da sayılır; aksi halde grafikteki
+        # dilimlerin toplamı toplam görev sayısını tutmuyordu.
+        'review_pending' : sum(
+            1 for task in tasks
+            if task.status == 'Review Pending'
+        ),
+        'revision_requested' : sum(
+            1 for task in tasks
+            if task.status == 'Revision Requested'
+        ),
         'done' : sum(
             1 for task in tasks
             if task.status == 'Done'
@@ -56,17 +74,28 @@ def index():
         )
     }
     recent_tasks = tasks[:5] #ilk 5 taskı çekmeyi sağladı
-    recent_activities = db.session.scalars(
+    activity_query = (
         db.select(Activity)
         .join(Task)
         .where(Task.team_id.in_(team_ids))
+    )
+    if current_user.is_intern:
+        activity_query = activity_query.where(
+            Task.assigned_to_id == current_user.id
+        )
+    recent_activities = db.session.scalars(
+        activity_query
         .order_by(Activity.created_at.desc())
         .limit(10)
     ).all()
+    # Grafiklerin okuduğu tek veri paketi.
+    chart_data = {**statistics, **priority_statistics}
+
     return render_template(
         'dashboard/index.html',
         statistics=statistics,
         priority_statistics=priority_statistics,
+        chart_data=chart_data,
         recent_tasks=recent_tasks,
         upcoming_tasks=upcoming_tasks,
         recent_activities=recent_activities

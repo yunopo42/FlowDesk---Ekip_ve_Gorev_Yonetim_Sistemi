@@ -1,180 +1,118 @@
 {% extends 'base.html' %}
 
-
-{% block title %}
-Görevler | FlowDesk
-{% endblock %}
-
+{% block title %}Görevler | FlowDesk{% endblock %}
 
 {% block content %}
-    <h1>Görevler</h1>
+<div class="mb-8">
+    <p class="text-sm font-semibold text-indigo-600">Görev merkezi</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-950">Görevler</h1>
+    <p class="mt-2 text-slate-500">Ekiplerindeki görevleri ara, filtrele ve takip et.</p>
+</div>
 
-    <form
-        method="GET"
-        action="{{ url_for('tasks.index') }}"
-    >
+<section class="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="mb-5 flex items-center justify-between gap-4">
         <div>
-            <label for="q">Görev ara</label>
+            <h2 class="font-bold text-slate-950">Arama ve filtreler</h2>
+            <p class="mt-1 text-sm text-slate-500">Sonuçları ihtiyacına göre daralt.</p>
+        </div>
+        <a href="{{ url_for('tasks.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">Temizle</a>
+    </div>
 
-            <input
-                type="text"
-                id="q"
-                name="q"
-                value="{{ search }}"
-                placeholder="Görev başlığı..."
-            >
+    <form method="GET" action="{{ url_for('tasks.index') }}" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="md:col-span-2">
+            <label for="q" class="mb-2 block text-sm font-semibold text-slate-700">Görev ara</label>
+            <input type="text" id="q" name="q" value="{{ search }}" placeholder="Görev başlığı..."
+                   class="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
         </div>
 
         <div>
-            <label for="status">Durum</label>
-
-            <select id="status" name="status">
+            <label for="status" class="mb-2 block text-sm font-semibold text-slate-700">Durum</label>
+            <select id="status" name="status" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                 <option value="">Tüm durumlar</option>
-
-                <option
-                    value="Todo"
-                    {% if selected_status == 'Todo' %}selected{% endif %}
-                >
-                    Todo
-                </option>
-
-                <option
-                    value="In Progress"
-                    {% if selected_status == 'In Progress' %}selected{% endif %}
-                >
-                    In Progress
-                </option>
-
-                <option
-                    value="Done"
-                    {% if selected_status == 'Done' %}selected{% endif %}
-                >
-                    Done
-                </option>
+                <option value="Todo" {% if selected_status == 'Todo' %}selected{% endif %}>Yapılacak</option>
+                <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>Devam ediyor</option>
+                <option value="Review Pending" {% if selected_status == 'Review Pending' %}selected{% endif %}>İnceleme bekliyor</option>
+                <option value="Revision Requested" {% if selected_status == 'Revision Requested' %}selected{% endif %}>Düzeltme istendi</option>
+                <option value="Done" {% if selected_status == 'Done' %}selected{% endif %}>Tamamlandı</option>
             </select>
         </div>
 
         <div>
-            <label for="priority">Öncelik</label>
-
-            <select id="priority" name="priority">
+            <label for="priority" class="mb-2 block text-sm font-semibold text-slate-700">Öncelik</label>
+            <select id="priority" name="priority" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                 <option value="">Tüm öncelikler</option>
-
-                <option
-                    value="Low"
-                    {% if selected_priority == 'Low' %}selected{% endif %}
-                >
-                    Low
-                </option>
-
-                <option
-                    value="Medium"
-                    {% if selected_priority == 'Medium' %}selected{% endif %}
-                >
-                    Medium
-                </option>
-
-                <option
-                    value="High"
-                    {% if selected_priority == 'High' %}selected{% endif %}
-                >
-                    High
-                </option>
+                <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Düşük</option>
+                <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Orta</option>
+                <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>Yüksek</option>
             </select>
         </div>
 
         <div>
-            <label for="assignee">Atanan kullanıcı</label>
-
-            <select id="assignee" name="assignee">
+            <label for="assignee" class="mb-2 block text-sm font-semibold text-slate-700">Atanan kullanıcı</label>
+            <select id="assignee" name="assignee" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
                 <option value="">Tüm kullanıcılar</option>
-
                 {% for user in available_assignees %}
-                    <option
-                        value="{{ user.id }}"
-                        {% if selected_assignee_id == user.id %}selected{% endif %}
-                    >
-                        {{ user.username }}
-                    </option>
+                    <option value="{{ user.id }}" {% if selected_assignee_id == user.id %}selected{% endif %}>{{ user.username }}</option>
                 {% endfor %}
             </select>
         </div>
 
         <div>
-            <label for="due_from">Teslim tarihi başlangıcı</label>
-
-            <input
-                type="date"
-                id="due_from"
-                name="due_from"
-                value="{{ due_from_value }}"
-            >
+            <label for="due_from" class="mb-2 block text-sm font-semibold text-slate-700">Teslim başlangıcı</label>
+            <input type="date" id="due_from" name="due_from" value="{{ due_from_value }}"
+                   class="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
         </div>
 
         <div>
-            <label for="due_to">Teslim tarihi bitişi</label>
+            <label for="due_to" class="mb-2 block text-sm font-semibold text-slate-700">Teslim bitişi</label>
+            <input type="date" id="due_to" name="due_to" value="{{ due_to_value }}"
+                   class="w-full rounded-xl border border-slate-300 px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+        </div>
 
-            <input
-                type="date"
-                id="due_to"
-                name="due_to"
-                value="{{ due_to_value }}"
-            >
+        <div class="flex items-end">
+            <button type="submit" class="w-full rounded-xl bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200">Filtrele</button>
         </div>
 
         {% if date_filter_error %}
-            <p>{{ date_filter_error }}</p>
+            <p class="md:col-span-2 xl:col-span-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ date_filter_error }}</p>
         {% endif %}
-
-        <button type="submit">
-            Ara / Filtrele
-        </button>
-
-        <a href="{{ url_for('tasks.index') }}">
-            Filtreleri Temizle
-        </a>
     </form>
+</section>
 
-    {% if tasks %}
-        <ul>
-            {% for task in tasks %}
-                <li>
-                    <h2>
-                        <a href="{{ url_for('tasks.detail', task_id=task.id) }}">
-                            {{ task.title }}
-                        </a>
-                    </h2>
+{% if tasks %}
+    <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {% for task in tasks %}
+            <article class="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg hover:shadow-slate-200/60">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="truncate text-xs font-semibold uppercase tracking-wide text-indigo-600">{{ task.team.name }}</p>
+                        <h2 class="mt-2 text-lg font-bold text-slate-950">
+                            <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="transition group-hover:text-indigo-600">{{ task.title }}</a>
+                        </h2>
+                    </div>
+                    <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold {% if task.priority == 'High' %}bg-red-100 text-red-700{% elif task.priority == 'Medium' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ task_priority_labels.get(task.priority, task.priority) }}</span>
+                </div>
 
-                    <p>
-                        Ekip: {{ task.team.name }}
-                    </p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {% if task.status == 'Done' %}bg-emerald-100 text-emerald-700{% elif task.status == 'In Progress' %}bg-blue-100 text-blue-700{% elif task.status == 'Review Pending' %}bg-indigo-100 text-indigo-700{% elif task.status == 'Revision Requested' %}bg-orange-100 text-orange-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ task_status_labels.get(task.status, task.status) }}</span>
+                    {% if task.is_overdue %}<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">Gecikti</span>{% endif %}
+                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{% if task.assignee %}{{ task.assignee.username }}{% else %}Atanmamış{% endif %}</span>
+                </div>
 
-                    <p>
-                        Durum: {{ task.status }}
-                    </p>
-
-                    <p>
-                        Öncelik: {{ task.priority }}
-                    </p>
-
-                    <p>
-                        {% if task.assignee %}
-                            Atanan: {{ task.assignee.username }}
-                        {% else %}
-                            Atanan: Henüz atanmadı
-                        {% endif %}
-                    </p>
-
-                    {% if task.due_date %}
-                        <p>
-                            Son teslim:
-                            {{ task.due_date.strftime('%d.%m.%Y') }}
-                        </p>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>Henüz görüntüleyebileceğiniz bir görev bulunmuyor.</p>
-    {% endif %}
+                <div class="mt-auto pt-6">
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 text-sm">
+                        <span class="{% if task.is_overdue %}font-semibold text-red-600{% else %}text-slate-500{% endif %}">{% if task.due_date %}Son: {{ task.due_date.strftime('%d.%m.%Y') }}{% else %}Tarih yok{% endif %}</span>
+                        <a href="{{ url_for('tasks.detail', task_id=task.id) }}" class="font-semibold text-indigo-600 hover:text-indigo-700">Detay →</a>
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+        <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-2xl">✓</div>
+        <h2 class="mt-4 text-lg font-bold text-slate-900">Görev bulunamadı</h2>
+        <p class="mt-2 text-sm text-slate-500">{% if current_user.is_personnel %}Filtreleri temizleyebilir veya ekibinden yeni bir görev oluşturabilirsin.{% else %}Ekipte sana görev atandığında burada görüntülenecek.{% endif %}</p>
+    </div>
+{% endif %}
 {% endblock %}

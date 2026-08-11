@@ -1,7 +1,7 @@
 from flask import abort ,flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.models import Team, TeamMember , User
+from app.models import Activity, Internship, Task, Team, TeamMember , User
 from app.teams import teams_bp
 from extensions import db
 
@@ -23,6 +23,9 @@ def index():
 @teams_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
+    if not current_user.is_personnel:
+        abort(403)
+
     errors = []
     name = ''
     description = ''
@@ -106,7 +109,7 @@ def add_member(team_id):
     if current_membership is None:
         abort(404)
 
-    if current_membership.role != 'Admin':
+    if current_membership.role != 'Admin' or not current_user.is_personnel:
         abort(403)
 
     errors = []
@@ -147,7 +150,7 @@ def add_member(team_id):
             membership = TeamMember(
                 team_id=team_id,
                 user_id=user.id,
-                role='Member'
+                role='Intern' if user.is_intern else 'Member'
             )
 
             db.session.add(membership)
@@ -185,7 +188,7 @@ def update_member_role(team_id, membership_id):
     if current_membership is None:
         abort(404)
 
-    if current_membership.role != 'Admin':
+    if current_membership.role != 'Admin' or not current_user.is_personnel:
         abort(403)
 
     target_membership = db.session.scalar(
@@ -200,7 +203,12 @@ def update_member_role(team_id, membership_id):
 
     new_role = request.form.get('role', '')
 
-    if new_role not in ['Admin', 'Member']:
+    if new_role not in ['Admin', 'Member', 'Intern']:
+        abort(400)
+
+    if target_membership.user.is_intern and new_role != 'Intern':
+        abort(400)
+    if target_membership.user.is_personnel and new_role == 'Intern':
         abort(400)
 
     if (
@@ -268,7 +276,7 @@ def remove_member(team_id, membership_id):
     if current_membership is None:
         abort(404)
 
-    if current_membership.role != 'Admin':
+    if current_membership.role != 'Admin' or not current_user.is_personnel:
         abort(403)
 
     target_membership = db.session.scalar(
@@ -311,15 +319,64 @@ def remove_member(team_id, membership_id):
                 url_for('teams.detail', team_id=team_id)
             )
 
+    removed_user_id = target_membership.user_id
     removed_username = target_membership.user.username
+
+    # Ekipten çıkan kullanıcı görevi artık göremez. Görevi sahipsiz bırakmak
+    # yerine atamasını kaldırıp iz kaydı düşüyoruz ki Admin yeniden atayabilsin.
+    orphaned_tasks = db.session.scalars(
+        db.select(Task).where(
+            Task.team_id == team_id,
+            Task.assigned_to_id == removed_user_id
+        )
+    ).all()
+
+    for task in orphaned_tasks:
+        task.assigned_to_id = None
+        db.session.add(
+            Activity(
+                action=(
+                    f'{removed_username} ekipten çıkarıldığı için görev '
+                    'ataması kaldırıldı.'
+                ),
+                task=task,
+                user_id=current_user.id
+            )
+        )
+
+    # Kullanıcının bu ekipteki devam eden staj kayıtları da erişilemez hale
+    # gelir; askıda kalmaması için iptal ediliyor.
+    cancelled_internships = db.session.scalars(
+        db.select(Internship).where(
+            Internship.team_id == team_id,
+            Internship.status.in_(['Planned', 'Active']),
+            db.or_(
+                Internship.intern_id == removed_user_id,
+                Internship.mentor_id == removed_user_id
+            )
+        )
+    ).all()
+
+    for internship in cancelled_internships:
+        internship.status = 'Cancelled'
 
     db.session.delete(target_membership)
     db.session.commit()
 
-    flash(
-        f'{removed_username} ekipten çıkarıldı.',
-        'success'
-    )
+    message = f'{removed_username} ekipten çıkarıldı.'
+
+    if orphaned_tasks:
+        message += (
+            f' {len(orphaned_tasks)} görevin ataması kaldırıldı, '
+            'yeniden atamanız gerekiyor.'
+        )
+
+    if cancelled_internships:
+        message += (
+            f' İlgili {len(cancelled_internships)} staj kaydı iptal edildi.'
+        )
+
+    flash(message, 'success')
 
     return redirect(
         url_for('teams.detail', team_id=team_id)

@@ -1,131 +1,66 @@
 {% extends 'base.html' %}
 
-
-{% block title %}
-Yeni Görev | FlowDesk
-{% endblock %}
-
+{% block title %}Yeni Görev | FlowDesk{% endblock %}
 
 {% block content %}
-    <h1>Yeni Görev Oluştur</h1>
+<div class="mx-auto max-w-3xl">
+    <div class="mb-6">
+        <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">← Ekip detayına dön</a>
+        <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">Yeni görev oluştur</h1>
+        <p class="mt-2 text-slate-500"><strong class="text-slate-700">{{ team.name }}</strong> ekibi için yeni bir iş planla.</p>
+    </div>
 
-    <p>
-        Ekip: <strong>{{ team.name }}</strong>
-    </p>
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        {% if errors %}
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <ul class="list-disc space-y-1 pl-5">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            </div>
+        {% endif %}
 
-    {% if errors %}
-        <div>
-            <ul>
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-
-    <form
-        method="POST"
-        action="{{ url_for('tasks.create', team_id=team.id) }}"
-    >
-        <div>
-            <label for="title">Görev başlığı</label>
-            <input
-                type="text"
-                id="title"
-                name="title"
-                value="{{ title }}"
-                minlength="3"
-                maxlength="150"
-                required
-            >
-        </div>
-
-        <div>
-            <label for="description">Açıklama</label>
-            <textarea
-                id="description"
-                name="description"
-                rows="5"
-            >{{ description }}</textarea>
-        </div>
-
-        <div>
-            <label for="priority">Öncelik</label>
-            <select id="priority" name="priority">
-                <option
-                    value="Low"
-                    {% if priority == 'Low' %}selected{% endif %}
-                >
-                    Low
-                </option>
-
-                <option
-                    value="Medium"
-                    {% if priority == 'Medium' %}selected{% endif %}
-                >
-                    Medium
-                </option>
-
-                <option
-                    value="High"
-                    {% if priority == 'High' %}selected{% endif %}
-                >
-                    High
-                </option>
-            </select>
-        </div>
-
-        {% if current_membership.role == 'Admin' %}
+        <form method="POST" action="{{ url_for('tasks.create', team_id=team.id) }}" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
-                <label for="assigned_to_id">
-                    Atanacak kullanıcı
-                </label>
+                <label for="title" class="mb-2 block text-sm font-semibold text-slate-700">Görev başlığı</label>
+                <input type="text" id="title" name="title" value="{{ title }}" minlength="3" maxlength="150" required
+                       class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
 
-                <select
-                    id="assigned_to_id"
-                    name="assigned_to_id"
-                >
-                    <option value="">
-                        Atama yapılmasın
-                    </option>
+            <div>
+                <label for="description" class="mb-2 block text-sm font-semibold text-slate-700">Açıklama</label>
+                <textarea id="description" name="description" rows="5" class="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">{{ description }}</textarea>
+            </div>
 
+            <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="priority" class="mb-2 block text-sm font-semibold text-slate-700">Öncelik</label>
+                    <select id="priority" name="priority" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        <option value="Low" {% if priority == 'Low' %}selected{% endif %}>Düşük</option>
+                        <option value="Medium" {% if priority == 'Medium' %}selected{% endif %}>Orta</option>
+                        <option value="High" {% if priority == 'High' %}selected{% endif %}>Yüksek</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="due_date" class="mb-2 block text-sm font-semibold text-slate-700">Son teslim tarihi</label>
+                    <input type="date" id="due_date" name="due_date" value="{{ due_date_value }}" min="{{ today if today is defined else '' }}" required class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                </div>
+            </div>
+
+            <div>
+                <label for="assigned_to_id" class="mb-2 block text-sm font-semibold text-slate-700">Atanacak ekip üyesi</label>
+                <select id="assigned_to_id" name="assigned_to_id" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                    <option value="">Ekip üyesi seçin</option>
                     {% for member in members %}
-                        <option
-                            value="{{ member.user_id }}"
-                            {% if assigned_to_value == member.user_id|string %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ member.user.username }}
-                            — {{ member.role }}
-                        </option>
+                        <option value="{{ member.user_id }}" {% if assigned_to_value == member.user_id|string %}selected{% endif %}>{{ member.user.username }}</option>
                     {% endfor %}
                 </select>
+                {% if not members %}<p class="mt-2 text-sm text-amber-700">Görev oluşturmadan önce ekibe en az bir kullanıcı eklemelisiniz.</p>{% endif %}
             </div>
-        {% else %}
-            <p>
-                Bu görevi atanmamış olarak oluşturuyorsunuz.
-                Görev atama işlemini ekip Admin’i yapabilir.
-            </p>
-        {% endif %}
-        <div>
-            <label for="due_date">Son teslim tarihi</label>
-            <input
-                type="date"
-                id="due_date"
-                name="due_date"
-                value="{{ due_date_value }}"
-            >
-        </div>
 
-        <button type="submit">
-            Görevi Oluştur
-        </button>
-    </form>
-
-    <p>
-        <a href="{{ url_for('teams.detail', team_id=team.id) }}">
-            Ekip detayına dön
-        </a>
-    </p>
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+                <a href="{{ url_for('teams.detail', team_id=team.id) }}" class="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50">İptal</a>
+                <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700">Görevi Oluştur</button>
+            </div>
+        </form>
+    </section>
+</div>
 {% endblock %}

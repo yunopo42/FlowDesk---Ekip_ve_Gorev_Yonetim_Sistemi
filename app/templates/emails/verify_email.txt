@@ -1,0 +1,9 @@
+Merhaba {{ user.username }},
+
+FlowDesk e-posta adresinizi doğrulamak için aşağıdaki bağlantıyı açın:
+
+{{ verification_url }}
+
+Bu bağlantı {{ expires_hours }} saat geçerlidir. Bu hesabı siz oluşturmadıysanız bu e-postayı yok sayabilirsiniz.
+
+FlowDesk

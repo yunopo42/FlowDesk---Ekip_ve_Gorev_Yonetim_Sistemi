@@ -1,6 +1,12 @@
-Flask==3.0.3
+Flask==3.1.3
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
-Flask-Limiter==3.7.0
-python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+Flask-Limiter==4.1.1
+Flask-Migrate==4.1.0
+Flask-WTF==1.3.0
+python-dotenv==1.2.2
+Pillow==12.2.0
+
+# Yalnızca canlı ortamda PostgreSQL (Supabase) bağlantısı için gereklidir.
+# Yerelde SQLite kullanıldığından kurulmasa da uygulama çalışır.
+psycopg2-binary==2.9.10

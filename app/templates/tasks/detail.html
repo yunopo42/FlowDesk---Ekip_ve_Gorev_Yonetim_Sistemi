@@ -1,260 +1,287 @@
 {% extends 'base.html' %}
 
-
-{% block title %}
-{{ task.title }} | FlowDesk
-{% endblock %}
-
+{% block title %}{{ task.title }} | FlowDesk{% endblock %}
 
 {% block content %}
-    <h1>{{ task.title }}</h1>
+<div class="mb-8">
+    <a href="{{ url_for('tasks.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">← Görevlere dön</a>
+    <div class="mt-4 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div class="min-w-0">
+            <div class="mb-3 flex flex-wrap items-center gap-2">
+                <a href="{{ url_for('teams.detail', team_id=task.team_id) }}" class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">{{ task.team.name }}</a>
+                <span class="rounded-full px-3 py-1 text-xs font-semibold {% if task.status == 'Done' %}bg-emerald-100 text-emerald-700{% elif task.status == 'In Progress' %}bg-blue-100 text-blue-700{% elif task.status == 'Review Pending' %}bg-indigo-100 text-indigo-700{% elif task.status == 'Revision Requested' %}bg-orange-100 text-orange-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ task_status_labels.get(task.status, task.status) }}</span>
+                <span class="rounded-full px-3 py-1 text-xs font-semibold {% if task.priority == 'High' %}bg-red-100 text-red-700{% elif task.priority == 'Medium' %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ task_priority_labels.get(task.priority, task.priority) }}</span>
+            </div>
+            <h1 class="break-words text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{{ task.title }}</h1>
+            <p class="mt-3 max-w-3xl leading-7 text-slate-600">{% if task.description %}{{ task.description }}{% else %}Bu görev için açıklama eklenmemiş.{% endif %}</p>
+        </div>
 
-    <p>
-        Ekip:
-        <a href="{{ url_for('teams.detail', team_id=task.team_id) }}">
-            {{ task.team.name }}
-        </a>
-    </p>
+        <div class="flex shrink-0 flex-wrap gap-2">
+            {% if current_user.is_personnel and (current_membership.role == 'Admin' or task.created_by_id == current_user.id) %}
+                <a href="{{ url_for('tasks.edit', task_id=task.id) }}" class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Düzenle</a>
+            {% endif %}
+            {% if current_membership.role == 'Admin' %}
+                <form method="POST" action="{{ url_for('tasks.delete', task_id=task.id) }}" data-confirm="Bu görevi silmek istediğinizden emin misiniz?">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100">Sil</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-    {% if task.description %}
-        <h2>Açıklama</h2>
-        <p>{{ task.description }}</p>
-    {% else %}
-        <p>Bu görev için açıklama eklenmemiş.</p>
-    {% endif %}
-
-    <h2>Görev Bilgileri</h2>
-
-    <p>
-        Durum: <strong>{{ task.status }}</strong>
-    </p>
-
-    {% if current_membership.role == 'Admin' or task.assigned_to_id == current_user.id %}
-        <form
-            method="POST"
-            action="{{ url_for('tasks.update_status', task_id=task.id) }}"
-        >
-            <label for="status">Durumu değiştir</label>
-
-            <select id="status" name="status">
-                <option
-                    value="Todo"
-                    {% if task.status == 'Todo' %}selected{% endif %}
-                >
-                    Todo
-                </option>
-
-                <option
-                    value="In Progress"
-                    {% if task.status == 'In Progress' %}selected{% endif %}
-                >
-                    In Progress
-                </option>
-
-                <option
-                    value="Done"
-                    {% if task.status == 'Done' %}selected{% endif %}
-                >
-                    Done
-                </option>
-            </select>
-
-            <button type="submit">
-                Durumu Güncelle
-            </button>
-        </form>
-    {% endif %}
-
-    <p>
-        Öncelik: <strong>{{ task.priority }}</strong>
-    </p>
-
-    <p>
-        Oluşturan: {{ task.creator.username }}
-    </p>
-
-    <p>
-        {% if task.assignee %}
-            Atanan: {{ task.assignee.username }}
-        {% else %}
-            Atanan: Henüz atanmadı
-        {% endif %}
-    </p>
-
-    <p>
-        Oluşturulma:
-        {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}
-    </p>
-
-    {% if task.due_date %}
-        <p>
-            Son teslim:
-            {{ task.due_date.strftime('%d.%m.%Y') }}
-        </p>
-    {% else %}
-        <p>Son teslim tarihi belirlenmemiş.</p>
-    {% endif %}
-
-    <p>
-        Bu ekipteki rolünüz:
-        <strong>{{ current_membership.role }}</strong>
-    </p>
-
-    {% if current_membership.role == 'Admin' %}
-        <section>
-            <h2>Görevi Yönet</h2>
-
-            <form
-                method="POST"
-                action="{{ url_for('tasks.manage', task_id=task.id) }}"
-            >
-                <div>
-                    <label for="priority">Öncelik</label>
-
-                    <select id="priority" name="priority">
-                        <option
-                            value="Low"
-                            {% if task.priority == 'Low' %}selected{% endif %}
-                        >
-                            Low
-                        </option>
-
-                        <option
-                            value="Medium"
-                            {% if task.priority == 'Medium' %}selected{% endif %}
-                        >
-                            Medium
-                        </option>
-
-                        <option
-                            value="High"
-                            {% if task.priority == 'High' %}selected{% endif %}
-                        >
-                            High
-                        </option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="assigned_to_id">
-                        Atanacak kullanıcı
-                    </label>
-
-                    <select
-                        id="assigned_to_id"
-                        name="assigned_to_id"
-                    >
-                        <option value="">
-                            Atamayı kaldır
-                        </option>
-
-                        {% for member in members %}
-                            <option
-                                value="{{ member.user_id }}"
-                                {% if task.assigned_to_id == member.user_id %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ member.user.username }}
-                                — {{ member.role }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <button type="submit">
-                    Görev Bilgilerini Güncelle
-                </button>
-            </form>
-        </section>
-    {% endif %}
-
-    {% if current_membership.role == 'Admin' or task.created_by_id == current_user.id %}
-        <p>
-            <a href="{{ url_for('tasks.edit', task_id=task.id) }}">
-                Görevi Düzenle
-            </a>
-        </p>
-    {% endif %}
-
-    {% if current_membership.role == 'Admin' %}
-        <form
-            method="POST"
-            action="{{ url_for('tasks.delete', task_id=task.id) }}"
-            onsubmit="return confirm('Bu görevi silmek istediğinizden emin misiniz?')"
-        >
-            <button type="submit">
-                Görevi Sil
-            </button>
-        </form>
-    {% endif %}
-
-    <section>
-        <h2>Yorumlar</h2>
-
-        {% if comments %}
-            <ul>
-                {% for comment in comments %}
-                    <li>
-                        <p>
-                            <strong>{{ comment.user.username }}</strong>
-                            —
-                            {{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}
-                        </p>
-
-                        <p>{{ comment.content }}</p>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Bu göreve henüz yorum eklenmemiş.</p>
-        {% endif %}
-
-        <form
-            method="POST"
-            action="{{ url_for('tasks.add_comment', task_id=task.id) }}"
-        >
+{% if is_intern_task %}
+    <section class="mb-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <label for="content">Yorumunuz</label>
+                <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Stajyer görev akışı</p>
+                {% if task.status == 'Review Pending' %}
+                    <h2 class="mt-1 text-lg font-bold text-indigo-950">
+                        {% if can_review_submission %}Stajyerin teslimi onayınızı bekliyor{% else %}Teslim mentör incelemesinde{% endif %}
+                    </h2>
+                    <p class="mt-1 text-sm text-indigo-700">
+                        {% if can_review_submission %}Çalışmayı ve bağlantıyı inceleyerek onaylayın veya açıklamayla düzeltme isteyin.{% else %}Mentör karar verdiğinde görev durumu otomatik olarak güncellenecek.{% endif %}
+                    </p>
+                {% elif task.status == 'Done' %}
+                    <h2 class="mt-1 text-lg font-bold text-emerald-800">Teslim mentör tarafından onaylandı</h2>
+                    <p class="mt-1 text-sm text-emerald-700">Bu görev başarıyla tamamlandı.</p>
+                {% elif task.status == 'Revision Requested' %}
+                    <h2 class="mt-1 text-lg font-bold text-orange-900">Mentör düzeltme istedi</h2>
+                    <p class="mt-1 text-sm text-orange-700">Geri bildirimi uyguladıktan sonra yeni bir teslim gönderebilirsiniz.</p>
+                {% else %}
+                    <h2 class="mt-1 text-lg font-bold text-indigo-950">Çalışma tamamlandığında mentöre teslim edilmelidir</h2>
+                    <p class="mt-1 text-sm text-indigo-700">Stajyer teslimini gönderir; görev ancak mentör onayından sonra tamamlanır.</p>
+                {% endif %}
+            </div>
+            <div class="flex shrink-0 items-center gap-2 text-xs font-bold">
+                <span class="rounded-full bg-white px-3 py-2 text-slate-600">1 · Çalış</span>
+                <span class="text-indigo-300">→</span>
+                <span class="rounded-full bg-white px-3 py-2 text-indigo-700">2 · Teslim et</span>
+                <span class="text-indigo-300">→</span>
+                <span class="rounded-full bg-white px-3 py-2 text-emerald-700">3 · Mentör onayı</span>
+            </div>
+        </div>
+    </section>
+{% endif %}
 
-                <textarea
-                    id="content"
-                    name="content"
-                    rows="4"
-                    maxlength="2000"
-                    required
-                ></textarea>
+<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div class="space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <h2 class="text-lg font-bold text-slate-950">Görev Bilgileri</h2>
+            <dl class="mt-5 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Oluşturan</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ task.creator.username }}</dd>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Atanan</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{% if task.assignee %}{{ task.assignee.username }}{% else %}Henüz atanmadı{% endif %}</dd>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Oluşturulma</dt>
+                    <dd class="mt-1 font-semibold text-slate-900">{{ task.created_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+                </div>
+                <div class="rounded-xl bg-slate-50 p-4">
+                    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Son teslim</dt>
+                    <dd class="mt-1 font-semibold {% if task.is_overdue %}text-red-700{% else %}text-slate-900{% endif %}">{% if task.due_date %}{{ task.due_date.strftime('%d.%m.%Y') }}{% if task.is_overdue %} · Gecikti{% endif %}{% else %}Belirlenmedi{% endif %}</dd>
+                </div>
+            </dl>
+
+            {% if (not is_intern_task and current_user.is_personnel and (current_membership.role == 'Admin' or task.created_by_id == current_user.id)) or (current_user.is_intern and task.assigned_to_id == current_user.id and task.status not in ['Review Pending', 'Done']) %}
+                <form method="POST" action="{{ url_for('tasks.update_status', task_id=task.id) }}" class="mt-6 flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-end">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="flex-1">
+                        <label for="status" class="mb-2 block text-sm font-semibold text-blue-900">Görev durumunu güncelle</label>
+                        <select id="status" name="status" class="w-full rounded-xl border border-blue-200 bg-white px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
+                            <option value="Todo" {% if task.status == 'Todo' %}selected{% endif %}>Yapılacak</option>
+                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>Devam ediyor</option>
+                            {% if current_user.is_personnel or not is_intern_task %}
+                                <option value="Done" {% if task.status == 'Done' %}selected{% endif %}>Tamamlandı</option>
+                            {% endif %}
+                            {% if current_user.is_personnel %}
+                                <option value="Review Pending" {% if task.status == 'Review Pending' %}selected{% endif %}>İnceleme bekliyor</option>
+                                <option value="Revision Requested" {% if task.status == 'Revision Requested' %}selected{% endif %}>Düzeltme istendi</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <button type="submit" class="rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-blue-700">Durumu Güncelle</button>
+                </form>
+            {% endif %}
+        </section>
+
+        {% if is_intern_task %}
+            <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+                    <h2 class="text-lg font-bold text-slate-950">Staj görevi teslimleri</h2>
+                    <p class="mt-1 text-sm text-slate-500">Stajyer çalışmasını mentöre gönderir; mentör onaylar veya düzeltme ister.</p>
+                </div>
+
+                {% if task.submissions %}
+                    <div class="divide-y divide-slate-100">
+                        {% for submission in task.submissions %}
+                            <article class="p-5 sm:p-6">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <strong class="text-sm text-slate-950">{{ submission.submitted_by.username }}</strong>
+                                        <time class="ml-2 text-xs text-slate-400">{{ submission.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+                                    </div>
+                                    <span class="rounded-full px-3 py-1 text-xs font-bold {% if submission.status == 'Approved' %}bg-emerald-100 text-emerald-700{% elif submission.status == 'Revision Requested' %}bg-amber-100 text-amber-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                                        {% if submission.status == 'Approved' %}Onaylandı{% elif submission.status == 'Revision Requested' %}Düzeltme istendi{% else %}İnceleme bekliyor{% endif %}
+                                    </span>
+                                </div>
+                                <div class="mt-4 rounded-xl bg-slate-950 px-4 py-3 font-mono text-sm text-emerald-300">{{ submission.commit_message }}</div>
+                                <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-600">{{ submission.summary }}</p>
+                                {% if submission.is_late %}<p class="mt-3 inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">Son teslim tarihinden sonra gönderildi</p>{% endif %}
+                                {% if submission.work_url %}
+                                    <a href="{{ submission.work_url }}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-sm font-bold text-indigo-600 hover:text-indigo-700">Çalışma bağlantısını aç ↗</a>
+                                {% endif %}
+                                {% if submission.learned %}<p class="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900"><strong>Öğrendikleri:</strong> {{ submission.learned }}</p>{% endif %}
+                                {% if submission.challenges %}<p class="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><strong>Karşılaştığı sorunlar:</strong> {{ submission.challenges }}</p>{% endif %}
+                                {% if submission.mentor_feedback %}<p class="mt-3 rounded-xl bg-indigo-50 p-3 text-sm text-indigo-900"><strong>Mentör geri bildirimi:</strong> {{ submission.mentor_feedback }}</p>{% endif %}
+
+                                {% if can_review_submission and submission.status == 'Pending Review' %}
+                                    <form method="POST" action="{{ url_for('tasks.review_submission', submission_id=submission.id) }}" class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <label for="submission-feedback-{{ submission.id }}" class="text-sm font-semibold text-slate-700">Değerlendirme notu</label>
+                                        <textarea id="submission-feedback-{{ submission.id }}" name="mentor_feedback" rows="3" maxlength="3000" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500"></textarea>
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            <button name="decision" value="Approved" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Teslimi onayla</button>
+                                            <button name="decision" value="Revision Requested" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white">Düzeltme iste</button>
+                                        </div>
+                                    </form>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% set pending_submission = task.submissions|selectattr('status', 'equalto', 'Pending Review')|list %}
+                {% if task.assigned_to_id == current_user.id and task.status != 'Done' and not pending_submission %}
+                    <form method="POST" action="{{ url_for('tasks.submit_for_review', task_id=task.id) }}" class="space-y-4 border-t border-slate-100 p-5 sm:p-6">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                            <h3 class="font-bold text-indigo-950">Görevi tamamladım</h3>
+                            <p class="mt-1 text-sm leading-6 text-indigo-700">Yaptığınız çalışmayı aşağıdaki bilgilerle mentörünüzün onayına gönderin.</p>
+                        </div>
+                        <div>
+                            <label for="commit_message" class="block text-sm font-semibold text-slate-700">Commit mesajı</label>
+                            <input id="commit_message" name="commit_message" maxlength="255" required placeholder="feat: kullanıcı yetkilendirmesini tamamla" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 font-mono outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        </div>
+                        <div>
+                            <label for="summary" class="block text-sm font-semibold text-slate-700">Teslim açıklaması</label>
+                            <textarea id="summary" name="summary" rows="5" maxlength="5000" required placeholder="Yaptığınız çalışmayı ve sonucu açıklayın..." class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
+                        </div>
+                        <div>
+                            <label for="work_url" class="block text-sm font-semibold text-slate-700">GitHub commit / pull request bağlantısı</label>
+                            <input id="work_url" name="work_url" type="url" maxlength="500" required placeholder="https://github.com/.../commit/..." class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div><label for="learned" class="block text-sm font-semibold text-slate-700">Ne öğrendim?</label><textarea id="learned" name="learned" rows="3" maxlength="3000" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"></textarea></div>
+                            <div><label for="challenges" class="block text-sm font-semibold text-slate-700">Karşılaştığım sorunlar</label><textarea id="challenges" name="challenges" rows="3" maxlength="3000" class="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-indigo-500"></textarea></div>
+                        </div>
+                        <div class="flex justify-end"><button class="rounded-xl bg-indigo-600 px-5 py-3 font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700">Tamamladım, mentör onayına gönder</button></div>
+                    </form>
+                {% endif %}
+            </section>
+        {% endif %}
+
+        <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4 sm:px-6">
+                <h2 class="text-lg font-bold text-slate-950">Yorumlar</h2>
+                <p class="mt-1 text-sm text-slate-500">Ekip içi notları ve güncellemeleri paylaş.</p>
             </div>
 
-            <button type="submit">
-                Yorum Ekle
-            </button>
-        </form>
-    </section>
+            {% if comments %}
+                <ul class="divide-y divide-slate-100">
+                    {% for comment in comments %}
+                        <li class="px-5 py-5 sm:px-6">
+                            <div class="flex items-start gap-3">
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">{{ comment.user.username[0]|upper }}</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                        <strong class="text-sm text-slate-950">{{ comment.user.username }}</strong>
+                                        <time class="text-xs text-slate-400">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+                                    </div>
+                                    <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{{ comment.content }}</p>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="px-6 py-8 text-center text-sm text-slate-500">Bu göreve henüz yorum eklenmemiş.</p>
+            {% endif %}
 
-    <section>
-        <h2>Aktivite Geçmişi</h2>
+            <form method="POST" action="{{ url_for('tasks.add_comment', task_id=task.id) }}" class="border-t border-slate-100 p-5 sm:p-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="content" class="mb-2 block text-sm font-semibold text-slate-700">Yorumunuz</label>
+                <textarea id="content" name="content" rows="4" maxlength="2000" required placeholder="Bir güncelleme yazın..." class="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"></textarea>
+                <div class="mt-3 flex justify-end">
+                    <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-sm hover:bg-indigo-700">Yorum Ekle</button>
+                </div>
+            </form>
+        </section>
+    </div>
 
-        {% if activities %}
-            <ul>
-                {% for activity in activities %}
-                    <li>
-                        <strong>{{ activity.user.username }}</strong>
-                        — {{ activity.action }}
-                        <small>
-                            {{ activity.created_at.strftime('%d.%m.%Y %H:%M') }}
-                        </small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Bu görev için henüz aktivite kaydı bulunmuyor.</p>
+    <aside class="space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="font-bold text-slate-950">Ekipteki rolünüz</h2>
+            <div class="mt-3 flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-3">
+                <span class="text-sm text-indigo-700">Yetki seviyesi</span>
+                <strong class="rounded-full bg-indigo-600 px-3 py-1 text-xs text-white">{% if current_membership.role == 'Admin' %}Ekip Yöneticisi{% elif current_membership.role == 'Member' %}Yazılımcı{% else %}Stajyer{% endif %}</strong>
+            </div>
+        </section>
+
+        {% if current_user.is_personnel and (current_membership.role == 'Admin' or task.created_by_id == current_user.id) %}
+            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="font-bold text-slate-950">Görevi Yönet</h2>
+                <p class="mt-1 text-sm text-slate-500">Önceliği ve sorumlu kişiyi güncelle.</p>
+                <form method="POST" action="{{ url_for('tasks.manage', task_id=task.id) }}" class="mt-5 space-y-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div>
+                        <label for="priority" class="mb-2 block text-sm font-semibold text-slate-700">Öncelik</label>
+                        <select id="priority" name="priority" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <option value="Low" {% if task.priority == 'Low' %}selected{% endif %}>Düşük</option>
+                            <option value="Medium" {% if task.priority == 'Medium' %}selected{% endif %}>Orta</option>
+                            <option value="High" {% if task.priority == 'High' %}selected{% endif %}>Yüksek</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="assigned_to_id" class="mb-2 block text-sm font-semibold text-slate-700">Atanacak kullanıcı</label>
+                        <select id="assigned_to_id" name="assigned_to_id" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <option value="">Ekip üyesi seçin</option>
+                            {% for member in members %}
+                                <option value="{{ member.user_id }}" {% if task.assigned_to_id == member.user_id %}selected{% endif %}>{{ member.user.username }} — {% if member.role == 'Admin' %}Ekip Yöneticisi{% elif member.role == 'Member' %}Yazılımcı{% else %}Stajyer{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white hover:bg-slate-800">Bilgileri Güncelle</button>
+                </form>
+            </section>
         {% endif %}
-    </section>
 
-    <p>
-        <a href="{{ url_for('tasks.index') }}">
-            Görevlere dön
-        </a>
-    </p>
+        <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-100 px-5 py-4">
+                <h2 class="font-bold text-slate-950">Aktivite Geçmişi</h2>
+            </div>
+            {% if activities %}
+                <ul class="max-h-[460px] divide-y divide-slate-100 overflow-y-auto">
+                    {% for activity in activities %}
+                        <li class="px-5 py-4">
+                            <div class="flex gap-3">
+                                <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-indigo-500"></span>
+                                <div>
+                                    <p class="text-sm leading-5 text-slate-600"><strong class="text-slate-900">{{ activity.user.username }}</strong> — {{ activity.action }}</p>
+                                    <time class="mt-1 block text-xs text-slate-400">{{ activity.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="px-5 py-8 text-center text-sm text-slate-500">Henüz aktivite kaydı yok.</p>
+            {% endif %}
+        </section>
+    </aside>
+</div>
 {% endblock %}

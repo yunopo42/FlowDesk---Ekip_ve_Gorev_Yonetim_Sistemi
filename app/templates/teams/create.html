@@ -1,54 +1,39 @@
 {% extends 'base.html' %}
 
-
-{% block title %}
-Yeni Ekip | FlowDesk
-{% endblock %}
-
+{% block title %}Yeni Ekip | FlowDesk{% endblock %}
 
 {% block content %}
-    <h1>Yeni Ekip Oluştur</h1>
+<div class="mx-auto max-w-2xl">
+    <div class="mb-6">
+        <a href="{{ url_for('teams.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">← Ekiplerime dön</a>
+        <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950">Yeni ekip oluştur</h1>
+        <p class="mt-2 text-slate-500">Yeni bir çalışma alanı oluştur ve üyelerini davet et.</p>
+    </div>
 
-    {% if errors %}
-        <div>
-            <ul>
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        {% if errors %}
+            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <ul class="list-disc space-y-1 pl-5">{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            </div>
+        {% endif %}
 
-    <form method="POST" action="{{ url_for('teams.create') }}">
-        <div>
-            <label for="name">Ekip adı</label>
-            <input
-                type="text"
-                id="name"
-                name="name"
-                value="{{ name }}"
-                minlength="3"
-                maxlength="100"
-                required
-            >
-        </div>
-
-        <div>
-            <label for="description">Açıklama</label>
-            <textarea
-                id="description"
-                name="description"
-                maxlength="255"
-                rows="4"
-            >{{ description }}</textarea>
-        </div>
-
-        <button type="submit">Ekibi Oluştur</button>
-    </form>
-
-    <p>
-        <a href="{{ url_for('teams.index') }}">
-            Ekiplerime dön
-        </a>
-    </p>
+        <form method="POST" action="{{ url_for('teams.create') }}" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label for="name" class="mb-2 block text-sm font-semibold text-slate-700">Ekip adı</label>
+                <input type="text" id="name" name="name" value="{{ name }}" minlength="3" maxlength="100" required
+                       class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </div>
+            <div>
+                <label for="description" class="mb-2 block text-sm font-semibold text-slate-700">Açıklama</label>
+                <textarea id="description" name="description" maxlength="255" rows="4" class="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">{{ description }}</textarea>
+                <p class="mt-2 text-xs text-slate-400">En fazla 255 karakter.</p>
+            </div>
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
+                <a href="{{ url_for('teams.index') }}" class="rounded-xl border border-slate-300 px-5 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50">İptal</a>
+                <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700">Ekibi Oluştur</button>
+            </div>
+        </form>
+    </section>
+</div>
 {% endblock %}

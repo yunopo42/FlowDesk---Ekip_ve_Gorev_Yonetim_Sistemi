@@ -1,5 +1,6 @@
 from extensions import db
-from datetime import datetime
+
+from app.models.base import utc_now
 
 class Team(db.Model):
     __tablename__ ='teams'
@@ -7,7 +8,7 @@ class Team(db.Model):
     id = db.Column(db.Integer , primary_key = True)
     name = db.Column(db.String(100) , nullable = False)
     description = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime , default = datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
 
     #relationships
@@ -27,7 +28,7 @@ class TeamMember(db.Model):
 
     #üyelerin ekip rollerini belirleme
     role = db.Column(db.String(20) , default='Member' , nullable = False)
-    joined_at = db.Column(db.DateTime , default = datetime.utcnow)
+    joined_at = db.Column(db.DateTime, default=utc_now)
 
     #relationships
     team = db.relationship('Team', back_populates='members')
