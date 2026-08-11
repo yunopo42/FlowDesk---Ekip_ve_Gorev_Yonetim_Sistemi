@@ -9,4 +9,4 @@ Pillow==12.2.0
 
 # Yalnızca canlı ortamda PostgreSQL (Supabase) bağlantısı için gereklidir.
 # Yerelde SQLite kullanıldığından kurulmasa da uygulama çalışır.
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.12
