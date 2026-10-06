@@ -4,7 +4,7 @@ Flask-Login==0.6.3
 Flask-Limiter==4.1.1
 Flask-Migrate==4.1.0
 Flask-WTF==1.3.0
-python-dotenv==1.2.2
+python-dotenv==1.2.4
 Pillow==12.2.0
 
 # Yalnızca canlı ortamda PostgreSQL (Supabase) bağlantısı için gereklidir.
